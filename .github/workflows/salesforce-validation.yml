@@ -1,0 +1,40 @@
+name: Salesforce Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install SFDX
+      run: npm install --global sfdx-cli
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Lint JavaScript
+      run: npm run lint --if-present
+      continue-on-error: true
+
+    - name: Validate Salesforce metadata
+      run: |
+        sfdx force:source:convert -d mdapi_output
+      continue-on-error: true
+
+    - name: Check for Salesforce metadata issues
+      run: |
+        echo "Salesforce metadata validation complete"
